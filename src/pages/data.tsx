@@ -49,6 +49,7 @@ import { useMemoryStore } from '@/store/memory'
 import { useSettingsStore } from '@/store/settings'
 import { useUiStore } from '@/store/ui'
 import { downloadJson } from '@/lib/utils'
+import { PageShell } from '@/components/page-shell'
 
 function formatBytes(bytes: number | null): string {
   if (!bytes) return '—'
@@ -143,16 +144,11 @@ export function DataPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin">
-      <div className="mx-auto max-w-4xl space-y-5 px-3.5 py-5 pb-24 sm:px-5 sm:py-6 xl:pb-6">
-        <header className="space-y-1">
-          <h1 className="flex items-center gap-2 text-xl font-semibold">
-            <IconDatabase className="h-5 w-5 text-primary" /> 导入导出与备份
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            数据全部存在浏览器 IndexedDB 里。换电脑或清理浏览器前，一定要导出一次。
-          </p>
-        </header>
+    <PageShell
+      icon={<IconDatabase className="h-[18px] w-[18px]" />}
+      title="导入导出与备份"
+      description="数据全部存在浏览器 IndexedDB 里。换电脑或清理浏览器前，一定要导出一次。"
+    >
 
         {/* 数据概况 */}
         <Card>
@@ -425,7 +421,6 @@ export function DataPage() {
             换浏览器、清除站点数据、用无痕模式都会让本地数据消失。重要对话请定期「导出全部数据」并保存到别处。
           </p>
         </div>
-      </div>
 
       {/* 导入预览 */}
       <Dialog open={Boolean(preview)} onOpenChange={(v) => !v && setPreview(null)}>
@@ -552,7 +547,7 @@ export function DataPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }
 

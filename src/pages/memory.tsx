@@ -37,6 +37,7 @@ import { useChatStore } from '@/store/chat'
 import { useSettingsStore } from '@/store/settings'
 import { useUiStore } from '@/store/ui'
 import type { Memory, MemoryType } from '@/lib/types'
+import { PageShell } from '@/components/page-shell'
 
 const TYPES: MemoryType[] = ['fact', 'preference', 'event', 'relation', 'other']
 
@@ -123,16 +124,11 @@ export function MemoryManager() {
   }
 
   return (
-    <div className="h-full overflow-y-auto scrollbar-thin">
-      <div className="mx-auto max-w-4xl space-y-5 px-3.5 py-5 pb-24 sm:px-5 sm:py-6 xl:pb-6">
-        <header className="space-y-1">
-          <h1 className="flex items-center gap-2 text-xl font-semibold">
-            <IconBrain className="h-5 w-5 text-primary" /> 记忆管理
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            置顶的记忆每次对话都会注入；其余按重要度取前 {settings.memoryInjectLimit} 条。
-          </p>
-        </header>
+    <PageShell
+      icon={<IconBrain className="h-[18px] w-[18px]" />}
+      title="记忆管理"
+      description={<>置顶的记忆每次对话都会注入；其余按重要度取前 {settings.memoryInjectLimit} 条。</>}
+    >
 
         {/* 角色选择 */}
         <div className="flex flex-wrap items-center gap-2">
@@ -421,7 +417,6 @@ export function MemoryManager() {
             ))}
           </ul>
         )}
-      </div>
 
       <Dialog open={confirmClearAuto} onOpenChange={setConfirmClearAuto}>
         <DialogContent className="max-w-sm">
@@ -441,6 +436,6 @@ export function MemoryManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   )
 }
