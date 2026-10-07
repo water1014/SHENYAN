@@ -285,12 +285,18 @@
   }
 
   /* ---------- 毛玻璃卡片：融入壁纸，而不是盖在上面 ---------- */
+  /* 白色页面底上，纯白 42% 的玻璃几乎看不出边界，分组就失效了；
+     所以底色稍实一点、描边稍明显一点，同时保留 blur 的通透感。 */
   .glass {
-    background: hsl(var(--bg) / 0.42);
-    border: 1px solid hsl(var(--line) / 0.6);
+    background: hsl(var(--fg) / 0.035);
+    border: 1px solid hsl(var(--line) / 0.85);
     box-shadow: var(--card-shadow);
     backdrop-filter: blur(16px) saturate(1.15);
     -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  }
+  /* 铺了背景图时，玻璃要更实一点才压得住壁纸 */
+  .has-bg-image .glass {
+    background: hsl(var(--bg) / 0.62);
   }
 
   /* ---------- 分隔线 ---------- */

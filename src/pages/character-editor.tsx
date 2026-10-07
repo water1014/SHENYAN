@@ -5,14 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Hint } from '@/components/ui/tooltip'
 import {
   IconChevronLeft,
   IconDownload,
   IconEye,
   IconSave,
-  IconSparkles,
   IconTrash,
   IconUpload,
 } from '@/components/icons'
@@ -21,9 +19,12 @@ import { useCharacterStore } from '@/store/characters'
 import { useSettingsStore } from '@/store/settings'
 import { useMemoryStore } from '@/store/memory'
 import { useUiStore } from '@/store/ui'
+import { GlassCard, CardLabel } from '@/components/settings-kit'
+import { PageShell } from '@/components/page-shell'
 import { assembleMessages } from '@/services/prompt'
 import type { Character } from '@/lib/types'
 
+/** 段卡片：毛玻璃 + 衬线小标题，与其他页面的分组卡片一致 */
 function Section({
   title,
   description,
@@ -36,13 +37,17 @@ function Section({
   className?: string
 }) {
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        {description && <CardDescription className="text-[11px]">{description}</CardDescription>}
-      </CardHeader>
-      <CardContent className="space-y-3">{children}</CardContent>
-    </Card>
+    <GlassCard className={className}>
+      <div className="mb-3">
+        <CardLabel>{title}</CardLabel>
+        {description && (
+          <p className="-mt-1.5 text-[11.5px] leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        )}
+      </div>
+      <div className="space-y-3">{children}</div>
+    </GlassCard>
   )
 }
 
@@ -181,9 +186,13 @@ export function CharacterEditor() {
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
-        <div className="mx-auto grid max-w-5xl gap-4 px-3.5 py-5 sm:px-5 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-4">
+      <PageShell
+        icon={<Avatar name={draft.name} src={draft.avatar} size={22} square />}
+        title={draft.name || '未命名角色'}
+        description={dirty ? '有未保存的改动' : '已保存'}
+      >
+        <div className="grid gap-[var(--gap-3)] lg:grid-cols-[1fr_320px]">
+          <div className="space-y-[var(--gap-3)]">
             <Section title="基本" description="名字与头像会显示在聊天里">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
@@ -310,23 +319,14 @@ export function CharacterEditor() {
             </Section>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-[var(--gap-3)] lg:sticky lg:top-4 lg:self-start">
             {showPreview && (
-              <Card className="lg:sticky lg:top-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <IconSparkles className="h-4 w-4 text-primary" /> 组装后的系统提示
-                  </CardTitle>
-                  <CardDescription className="text-[11px]">
-                    按当前提示词预设与记忆设置生成（未保存的改动也算）
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <pre className="max-h-[60vh] overflow-y-auto scrollbar-thin whitespace-pre-wrap break-words rounded-md bg-muted/40 p-3 font-sans text-[11px] leading-5">
-                    {previewPrompt()}
-                  </pre>
-                </CardContent>
-              </Card>
+              <GlassCard>
+                <CardLabel hint="按当前预设与记忆设置生成">组装后的系统提示</CardLabel>
+                <pre className="mt-2 max-h-[60vh] overflow-y-auto scrollbar-thin whitespace-pre-wrap break-words rounded-[var(--r-control)] bg-[hsl(var(--surface-2)/0.5)] p-3 font-sans text-[11px] leading-5">
+                  {previewPrompt()}
+                </pre>
+              </GlassCard>
             )}
 
             <Section title="导入" description="粘贴角色卡 JSON 覆盖当前字段">
@@ -362,7 +362,7 @@ export function CharacterEditor() {
             </Section>
           </div>
         </div>
-      </div>
+      </PageShell>
     </div>
   )
 }
