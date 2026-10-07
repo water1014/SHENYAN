@@ -119,6 +119,26 @@ npm run typecheck
 - **弹窗**：对话框宽度是 `calc(100% - 1.5rem)`，窄屏不会贴边
 - **可加桌面图标**：填好设置后「添加到主屏幕」，就是全屏无地址栏的体验
 
+## PWA（可安装 + 离线）
+
+已经配好 Web App Manifest 与 Service Worker，iOS / Android 都能「添加到主屏幕」，装完是**全屏无地址栏**，且**断网也能打开**（外壳与已访问过的资源都在缓存里）。
+
+| 文件 | 作用 |
+|---|---|
+| `public/manifest.webmanifest` | 名称、图标、`display: standalone`、`scope: ./` |
+| `public/sw.js` | 离线外壳：导航 network-first、静态资源 cache-first、跨域一律不拦 |
+| `public/icon-*.png` / `apple-touch-icon.png` | 图标由 [tools/build-icons.py](tools/build-icons.py) 自绘生成 |
+| `src/main.tsx` | 注册 SW，**只在生产构建里注册**，开发时不注册以免缓存干扰 |
+
+几点说明：
+
+- **缓存自动失效**：`sw.js` 里的 `CACHE` 是构建时注入的时间戳（见 `vite.config.ts` 的 `inject-sw-cache` 插件），
+  每次构建都变，SW 在 `activate` 阶段会删掉旧缓存。所以不会出现「页面已是新版、SW 还在喂旧壳」。
+- **导航走 network-first**：联网时刷新一定拿到最新 `index.html`；只有断网才回落缓存。
+- **绝不拦跨域请求**：LLM 接口和 SSE 流式响应不能进缓存，否则对话会错乱。
+- **换图标**：改 `tools/build-icons.py` 里的颜色或字形，重跑脚本即可。
+- **注意**：Service Worker 只在 **HTTPS 或 localhost** 下可用。用 `file://` 直接打开 `dist/` 时不会有离线能力（应用本身仍能跑）。
+
 ## 部署到 GitHub Pages
 
 仓库里已经放好 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)，推上去即可自动构建发布：

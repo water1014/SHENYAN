@@ -3,17 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="color-scheme" content="dark light" />
-    <meta name="theme-color" content="#141419" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- PEARL TIDE 的深色（石板蓝），配合浅色主题的地址栏 -->
+    <meta name="theme-color" content="#F7FAFC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111A22" media="(prefers-color-scheme: dark)" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="AI 伴侣" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="伴侣" />
     <meta name="description" content="单用户、本地优先、API 可配、数据可导出的 AI 伴侣聊天前端" />
-    <link
-      rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23d94f86'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E4%BC%B4%3C/text%3E%3C/svg%3E"
-    />
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+
     <title>AI 伴侣</title>
   </head>
   <body>
