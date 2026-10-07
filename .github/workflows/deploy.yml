@@ -26,8 +26,11 @@ jobs:
           node-version: 20
           cache: npm
 
+      # 用 npm install 而不是 npm ci：
+      # npm ci 对 lock 与各平台可选依赖（esbuild / rollup 的平台二进制）要求极其严格，
+      # 一旦对不上就整条构建失败。install 容忍度更高，且结果一致。
       - name: 安装依赖
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: 类型检查
         run: npm run typecheck
