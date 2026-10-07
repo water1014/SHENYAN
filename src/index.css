@@ -42,10 +42,12 @@
   }
 
   .dark {
-    /* 深色：暖炭灰（不是纯黑，也不是冷蓝黑） */
+    /* 深色：暖炭灰（不是纯黑，也不是冷蓝黑）。
+       用带透明度的值，让可选的背景图能透出来一点，
+       否则铺了背景图也会被卡片完全盖住。 */
     --bg: 24 9% 8%;
-    --surface: 24 8% 11%;
-    --surface-2: 24 7% 15%;
+    --surface: 24 8% 12% / 0.72;
+    --surface-2: 24 7% 16% / 0.6;
     --fg: 30 12% 94%;
     --fg-soft: 28 8% 74%;
     --fg-faint: 26 7% 58%;
@@ -53,8 +55,8 @@
     --accent-soft: 342 26% 19%;
     --btn: 342 72% 63%;
     --btn-fg: 344 45% 11%;
-    --line: 26 8% 19%;
-    --line-soft: 26 7% 16%;
+    --line: 26 8% 22% / 0.8;
+    --line-soft: 26 7% 18% / 0.7;
   }
 
   /* 把设计变量接进 shadcn/ui 的既有槽位，组件不用改 */
@@ -103,11 +105,21 @@
 
     /* 中文优先的编辑器/系统混合栈：
        中文落到苹方 / 微软雅黑，拉丁字母落到 Segoe UI Variable / SF。
-       不引外链字体（隐私 + 国内可用性 + 首屏速度），靠字重与字距建立层级。 */
-    font-family:
-      -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI',
-      'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei',
-      system-ui, sans-serif;
+       不引外链字体（隐私 + 国内可用性 + 首屏速度），靠字重与字距建立层级。
+       --display-font 由设置页覆盖（可选用本机已装的丸体 / 明朝体 / 手写体）。 */
+    font-family: var(
+      --display-font,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI Variable Text',
+      'Segoe UI',
+      'PingFang SC',
+      'Hiragino Sans GB',
+      'Microsoft YaHei UI',
+      'Microsoft YaHei',
+      system-ui,
+      sans-serif
+    );
     font-feature-settings: 'kern' 1;
     text-rendering: optimizeLegibility;
 
@@ -275,6 +287,53 @@
   .rule {
     border-top: 1px solid hsl(var(--line));
   }
+
+  /* ---------- 可选背景图 ---------- */
+  /* 铺了背景图时，把页面底色改成透明，否则 bg-background 会把背景层整个盖住 */
+  .has-bg-image {
+    --bg: 24 9% 8% / 0;
+    --surface: 24 8% 14% / 0.66;
+    --surface-2: 24 7% 18% / 0.55;
+  }
+  html.has-bg-image,
+  body.has-bg-image {
+    background: transparent;
+  }
+
+  /* 背景层：铺满视口，轻微模糊消除原图的手写文案与噪点，
+     再叠一层可调透明度的暗色蒙版，保证前景文字始终够对比。 */
+  .bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px) saturate(0.9);
+    transform: scale(1.04);
+  }
+  .bg-dim {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: hsl(24 10% 6% / var(--bg-dim, 0.45));
+  }
+}
+
+/* 显示字体偏好：引用本机已安装的字体族，不内嵌字体文件。
+   用户机器上没有时会自然回落到系统栈。 */
+.font-maru {
+  font-family: '975MaruSC-Regular', '975MaruSC-Medium', 'PingFang SC', 'Microsoft YaHei UI',
+    'Microsoft YaHei', system-ui, sans-serif;
+}
+.font-ming {
+  font-family: '汇文明朝体', 'SongHuiZongShouJinJiaCuBan', 'FeiHuaSongTi', 'Songti SC',
+    'SimSun', 'Noto Serif SC', serif;
+}
+.font-hand {
+  font-family: 'BaoCanMouHuiTingShouXieTi2.0', 'PangMenZhengDaoQingSongTi',
+    'YanShiChunFengKai', 'Kaiti SC', 'KaiTi', 'STKaiti', cursive;
 }
 
 /* ==========================================================================

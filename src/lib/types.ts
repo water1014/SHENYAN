@@ -163,6 +163,12 @@ export interface AppSettings {
   autoBackupKeep: number
   /** 是否在提示里注入"你正在扮演"约束 */
   strictRoleplay: boolean
+  /** 首页背景图 id（空 = 不用背景） */
+  backgroundId: string
+  /** 背景明暗：0-100，越大越暗，保证前景文字可读 */
+  backgroundDim: number
+  /** 界面字体偏好：'system' 用系统栈，其余对应本机已安装的字体族 */
+  displayFont: 'system' | 'maru' | 'ming' | 'hand'
 }
 
 /** 提示词组装模板：顺序由 blocks 决定 */

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -26,6 +26,7 @@ import {
 import { cn, clamp, copyText, safeParseJson } from '@/lib/utils'
 import { endpointOf } from '@/services/llm'
 import { DEFAULT_SYSTEM_IDENTITY } from '@/lib/defaults'
+import { BACKGROUNDS, themeForBackground } from '@/lib/backgrounds'
 import { useSettingsStore } from '@/store/settings'
 import type { ModelPreset, PromptBlockToggle, PromptPreset } from '@/lib/types'
 
@@ -156,12 +157,131 @@ export function Settings() {
           </p>
         </header>
 
-        <Tabs defaultValue="api">
+        <Tabs defaultValue="look">
           <TabsList>
+            <TabsTrigger value="look">外观</TabsTrigger>
             <TabsTrigger value="api">接口与模型</TabsTrigger>
             <TabsTrigger value="chat">对话与记忆</TabsTrigger>
             <TabsTrigger value="prompt">提示词组装</TabsTrigger>
           </TabsList>
+
+          {/* ---------------- 外观 ---------------- */}
+          <TabsContent value="look">
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">背景图</CardTitle>
+                  <CardDescription className="text-[11px]">
+                    来自本机壁纸库，统一裁成手机比例并压成 WebP（合计约 0.6 MB）。
+                    原图是浅底深字，所以会叠一层可调暗度蒙版来保证文字可读。
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                    <button
+                      onClick={() => void update({ backgroundId: '' })}
+                      className={cn(
+                        'flex aspect-[9/16] items-center justify-center rounded-[var(--r-control)] border px-1 text-center text-[10px] leading-tight text-muted-foreground transition-colors',
+                        !settings.backgroundId
+                          ? 'border-primary/60 bg-primary/10 text-foreground'
+                          : 'border-border hover:border-primary/40',
+                      )}
+                    >
+                      不用背景
+                    </button>
+                    {BACKGROUNDS.map((b) => {
+                      const rec = themeForBackground(b)
+                      return (
+                        <button
+                          key={b.id}
+                          onClick={() =>
+                            // 主题跟着壁纸走：浅色壁纸配浅色主题，深色壁纸配深色主题
+                            void update({
+                              backgroundId: b.id,
+                              backgroundDim: rec.dim,
+                              theme: rec.theme,
+                            })
+                          }
+                          title={`${b.id} · 亮度 ${b.luminance.toFixed(2)} · 建议${rec.theme === 'light' ? '浅色' : '深色'}主题`}
+                          className={cn(
+                            'aspect-[9/16] overflow-hidden rounded-[var(--r-control)] border bg-cover bg-center transition-all',
+                            settings.backgroundId === b.id
+                              ? 'border-primary ring-2 ring-primary/40'
+                              : 'border-border hover:border-primary/40',
+                          )}
+                          style={{ backgroundImage: `url("${b.url}")` }}
+                        />
+                      )
+                    })}
+                  </div>
+
+                  <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <IconInfo className="mt-0.5 h-3 w-3 shrink-0" />
+                    这批壁纸是浅底手绘，所以选中时会自动切到浅色主题并把暗度调低；
+                    偏暗的 bg-04 / bg-10 会反过来配深色主题。
+                  </p>
+
+                  <Field
+                    label={`暗度 ${settings.backgroundDim}%`}
+                    hint="越大背景越暗、文字越清楚；太亮压不住背景上的手写文案"
+                  >
+                    <Slider
+                      value={[settings.backgroundDim]}
+                      min={0}
+                      max={95}
+                      step={1}
+                      disabled={!settings.backgroundId}
+                      onValueChange={([v]) => void update({ backgroundDim: v })}
+                    />
+                  </Field>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">界面字体</CardTitle>
+                  <CardDescription className="text-[11px]">
+                    只引用本机已安装的字体名，不内嵌字体文件。换设备或没装该字体时会自动回落到系统栈。
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    {(
+                      [
+                        { key: 'system', label: '系统默认', desc: '苹方 / 微软雅黑，最稳', cls: '' },
+                        { key: 'maru', label: '丸体 975MaruSC', desc: '圆润，适合陪伴感', cls: 'font-maru' },
+                        { key: 'ming', label: '明朝体 汇文明朝体', desc: '衬线，适合诗句与留言', cls: 'font-ming' },
+                        { key: 'hand', label: '手写体', desc: '包参谋手写体，最有私人信件感', cls: 'font-hand' },
+                      ] as const
+                    ).map((f) => (
+                      <button
+                        key={f.key}
+                        onClick={() => void update({ displayFont: f.key })}
+                        className={cn(
+                          'flex w-full items-center justify-between gap-3 rounded-[var(--r-control)] border px-3.5 py-3 text-left transition-colors',
+                          settings.displayFont === f.key
+                            ? 'border-primary/60 bg-primary/10'
+                            : 'border-border hover:border-primary/40',
+                        )}
+                      >
+                        <span className="min-w-0">
+                          <span className="block text-[13px] font-medium">{f.label}</span>
+                          <span className="block text-[11px] text-muted-foreground">{f.desc}</span>
+                        </span>
+                        <span className={cn('shrink-0 text-[14px] text-foreground/80', f.cls)}>
+                          晚安，辛苦了
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <IconInfo className="mt-0.5 h-3 w-3 shrink-0" />
+                    这些字体多来自商业字库，个人使用一般没问题；若要公开分发或商用，请自行确认授权。
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           {/* ---------------- 接口与模型 ---------------- */}
           <TabsContent value="api">

@@ -148,6 +148,9 @@ export function createDefaultSettings(): AppSettings {
     autoBackupMinutes: 0,
     autoBackupKeep: 5,
     strictRoleplay: true,
+    backgroundId: '',
+    backgroundDim: 45,
+    displayFont: 'system',
   }
 }
 

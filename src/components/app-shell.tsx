@@ -15,7 +15,8 @@ import {
   IconUser,
 } from '@/components/icons'
 import { BottomNav } from '@/components/bottom-nav'
-import { cn } from '@/lib/utils'
+import { cn, clamp } from '@/lib/utils'
+import { backgroundById } from '@/lib/backgrounds'
 import { scheduleAutoBackup, useSettingsStore } from '@/store/settings'
 import { useCharacterStore } from '@/store/characters'
 import { useMemoryStore } from '@/store/memory'
@@ -31,6 +32,13 @@ const NAV = [
   { to: '/memory', label: '记忆', icon: IconBrain },
   { to: '/data', label: '数据', icon: IconDatabase },
 ]
+
+/** 字体族栈：只引用「本机已安装」的字体名，不内嵌字体文件（避免体积与授权问题） */
+const FONT_STACKS = {
+  maru: "'975MaruSC-Regular','975MaruSC-Medium','PingFang SC','Microsoft YaHei UI','Microsoft YaHei',system-ui,sans-serif",
+  ming: "'汇文明朝体','SongHuiZongShouJinJiaCuBan','FeiHuaSongTi','Songti SC','SimSun','Noto Serif SC',serif",
+  hand: "'BaoCanMouHuiTingShouXieTi2.0','PangMenZhengDaoQingSongTi','YanShiChunFengKai','Kaiti SC','KaiTi','STKaiti',cursive",
+} as const
 
 export function AppShell() {
   const location = useLocation()
@@ -92,6 +100,34 @@ export function AppShell() {
     document.documentElement.classList.toggle('dark', settings.theme === 'dark')
   }, [settings.theme])
 
+  /* 5) 背景图与字体偏好：写到根元素的自定义属性上，全站生效 */
+  useEffect(() => {
+    const root = document.documentElement
+    const body = document.body
+    const bg = backgroundById(settings.backgroundId)
+    if (bg) {
+      root.style.setProperty('--bg-image', `url("${bg.url}")`)
+      root.style.setProperty('--bg-dim', String(clamp(settings.backgroundDim, 0, 95) / 100))
+      root.classList.add('has-bg-image')
+      body.classList.add('has-bg-image')
+    } else {
+      root.style.removeProperty('--bg-image')
+      root.style.removeProperty('--bg-dim')
+      root.classList.remove('has-bg-image')
+      body.classList.remove('has-bg-image')
+    }
+    if (settings.displayFont === 'system') root.style.removeProperty('--display-font')
+    else {
+      const stack =
+        settings.displayFont === 'maru'
+          ? FONT_STACKS.maru
+          : settings.displayFont === 'ming'
+            ? FONT_STACKS.ming
+            : FONT_STACKS.hand
+      root.style.setProperty('--display-font', stack)
+    }
+  }, [settings.backgroundId, settings.backgroundDim, settings.displayFont])
+
   /* 5) 正在流式生成时刷新/关标签页给个提醒 */
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -146,8 +182,23 @@ export function AppShell() {
   }
 
   return (
-    <TooltipProvider delayDuration={350}>
-      <div className="flex h-full flex-col">
+    <>
+      {/* 可选背景图：固定铺满视口，在内容之下（z-0）。轻微模糊消掉原图的手写文案噪点 */}
+      {settings.backgroundId && (
+        <>
+          <div className="bg-layer" style={{ backgroundImage: 'var(--bg-image)' }} aria-hidden />
+          <div className="bg-dim" aria-hidden />
+        </>
+      )}
+
+      <TooltipProvider delayDuration={350}>
+        {/* 铺了背景图时容器必须透明，否则会把下面的背景层整个盖住 */}
+        <div
+          className={cn(
+            'relative z-10 flex h-full flex-col',
+            !settings.backgroundId && 'bg-background',
+          )}
+        >
         <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-card/50 px-3 pt-safe md:gap-3 md:px-4">
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-[13px] font-bold text-primary-foreground">
@@ -229,8 +280,9 @@ export function AppShell() {
         {/* 底部导航：窄屏与平板用；聊天页自带输入区，所以那里不显示，避免和输入框打架 */}
         {location.pathname !== '/' && <BottomNav />}
 
-        <Toaster />
-      </div>
-    </TooltipProvider>
+          <Toaster />
+        </div>
+      </TooltipProvider>
+    </>
   )
 }

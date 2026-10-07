@@ -88,7 +88,7 @@ export function Home() {
     <div className="relative h-full overflow-y-auto scrollbar-thin">
       <RoomAmbient />
 
-      <div className="relative mx-auto w-full max-w-2xl px-5 pb-28 pt-10 md:pt-16">
+      <div className="relative mx-auto w-full max-w-2xl px-5 pb-32 pt-10 md:pt-16 xl:pb-12">
         {/* 关系天数：这一屏的视觉主角 */}
         <header className="rise rise-1 flex flex-col items-start">
           <div className="flex items-center gap-3">
