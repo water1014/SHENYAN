@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/avatar'
 import { RoomAmbient } from '@/components/room-ambient'
 import { PopNumber } from '@/components/pop-number'
+import { ChatHeatmap } from '@/components/chat-heatmap'
 import { Button } from '@/components/ui/button'
 import { IconChevronRight, IconMessages, IconSparkles } from '@/components/icons'
 import { cn } from '@/lib/utils'
@@ -155,6 +156,9 @@ export function Home() {
             </div>
           </button>
         </section>
+
+        {/* 聊天热力：颜色越深聊得越多。没有会话时也显示，起「还没开始聊」的提示作用 */}
+        <ChatHeatmap sessionIds={sessionIds} className="rise rise-4 mt-8" />
 
         {/* 继续对话 */}
         <section className="rise rise-4 mt-8">
