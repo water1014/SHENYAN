@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Markdown } from '@/components/markdown'
 import { Avatar } from '@/components/avatar'
+import { SuccessCheck } from '@/components/success-check'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Hint } from '@/components/ui/tooltip'
@@ -89,38 +90,40 @@ export function MessageBubble({
   return (
     <div
       className={cn(
-        'group/msg flex w-full gap-2 animate-fade-in sm:gap-3',
+        'msg-in group/msg flex w-full gap-2.5 md:gap-3',
         isUser ? 'flex-row-reverse' : 'flex-row',
       )}
     >
       <Avatar
         name={isUser ? '我' : character.name}
         src={isUser ? undefined : character.avatar}
-        size={30}
-        className="mt-0.5 sm:hidden"
+        size={28}
+        square
+        className="mt-0.5 md:hidden"
       />
       <Avatar
         name={isUser ? '我' : character.name}
         src={isUser ? undefined : character.avatar}
-        size={34}
-        className="mt-0.5 hidden sm:block"
+        size={32}
+        square
+        className="mt-0.5 hidden md:block"
       />
 
-      <div className={cn('flex min-w-0 max-w-[88%] flex-col sm:max-w-[82%]', isUser && 'items-end')}>
+      <div className={cn('flex min-w-0 max-w-[86%] flex-col md:max-w-[78%]', isUser && 'items-end')}>
         <div
           className={cn(
-            'flex items-center gap-2 px-1 pb-1 text-xs text-muted-foreground',
+            'flex items-center gap-2 px-0.5 pb-1.5 text-[11px] text-muted-foreground',
             isUser && 'flex-row-reverse',
           )}
         >
-          <span className="font-medium text-foreground/80">{isUser ? '我' : character.name}</span>
-          <span className="tabular-nums opacity-70">{formatDateTime(message.createdAt)}</span>
-          {message.meta?.edited && <span className="opacity-70">已编辑</span>}
+          <span className="font-medium text-foreground/75">{isUser ? '我' : character.name}</span>
+          <time className="tnum opacity-65">{formatDateTime(message.createdAt)}</time>
+          {message.meta?.edited && <span className="opacity-65">已编辑</span>}
           {message.meta?.model && !isUser && (
-            <span className="hidden opacity-60 sm:inline">{message.meta.model}</span>
+            <span className="hidden opacity-55 md:inline">{message.meta.model}</span>
           )}
           {showTokens && (
-            <span className="hidden opacity-60 sm:inline">
+            <span className="tnum hidden opacity-55 md:inline">
               ~{estimateTokens(message.content)} tok
             </span>
           )}
@@ -128,10 +131,8 @@ export function MessageBubble({
 
         <div
           className={cn(
-            'relative w-full rounded-2xl border px-3 py-2 shadow-sm sm:px-4 sm:py-2.5',
-            isUser
-              ? 'border-primary/30 bg-primary/12 text-foreground rounded-tr-sm'
-              : 'border-border bg-card rounded-tl-sm',
+            'relative w-full rounded-[var(--r-panel)] px-3.5 py-2.5 md:px-4 md:py-3',
+            isUser ? 'bubble-user rounded-tr-[6px]' : 'bubble-assistant rounded-tl-[6px]',
           )}
         >
           {editing ? (
@@ -206,7 +207,11 @@ export function MessageBubble({
           >
             <Hint label="复制">
               <Button variant="ghost" size="icon-sm" className="h-8 w-8 sm:h-7 sm:w-7" onClick={handleCopy}>
-                {copied ? <IconCheck className="h-3.5 w-3.5" /> : <IconCopy className="h-3.5 w-3.5" />}
+                {copied ? (
+                  <SuccessCheck className="text-primary" size={15} />
+                ) : (
+                  <IconCopy className="h-3.5 w-3.5" />
+                )}
               </Button>
             </Hint>
 
@@ -278,15 +283,15 @@ export function MessageBubble({
   )
 }
 
-/** 打字状态：三个跳动的小点 */
+/** 打字状态：只做透明度呼吸，不做位移（更安静） */
 export function TypingDots() {
   return (
-    <div className="flex items-center gap-1 py-1" aria-label="正在输入">
+    <div className="flex items-center gap-1.5 py-1" role="status" aria-label="正在输入">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce-dot"
-          style={{ animationDelay: `${i * 0.15}s` }}
+          className="typing-dot h-1.5 w-1.5 rounded-full bg-muted-foreground"
+          style={{ animationDelay: `${i * 0.16}s` }}
         />
       ))}
     </div>

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SessionList } from '@/components/session-list'
 import { MessageBubble, TypingDots } from '@/components/message-bubble'
@@ -7,6 +7,7 @@ import { CharacterPanel } from '@/components/panels/character-panel'
 import { MemoryPanel } from '@/components/panels/memory-panel'
 import { ContextPanel } from '@/components/panels/context-panel'
 import { RoomAmbient } from '@/components/room-ambient'
+import { PopNumber } from '@/components/pop-number'
 import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/ui/button'
 import { Hint } from '@/components/ui/tooltip'
@@ -447,92 +448,95 @@ export function ChatView() {
         >
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
             {messages.length === 0 && !streaming && (
-              <div className="relative flex min-h-[62vh] flex-col items-center justify-center px-2 py-12 text-center sm:min-h-[70vh]">
+              <div className="relative -mx-2.5 -mt-3 min-h-[64dvh] px-5 pb-10 pt-14 md:-mx-6 md:px-8 md:pt-20">
                 <RoomAmbient />
 
-                <div className="relative flex max-w-md flex-col items-center">
-                  {/* 头像 + 呼吸光环 */}
-                  <div className="rise rise-1 relative mb-5">
-                    <div
-                      className="avatar-aura absolute inset-[-20px] rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/.45),transparent_70%)] blur-2xl"
-                      aria-hidden
+                {/* 左对齐编辑式构图：不做"居中发光圆"那一套（那是 AI 指纹） */}
+                <div className="relative mx-auto flex w-full max-w-2xl flex-col">
+                  <div className="rise rise-1 flex items-center gap-3.5">
+                    <Avatar
+                      name={activeCharacter?.name ?? '?'}
+                      src={activeCharacter?.avatar}
+                      size={52}
+                      square
+                      className="ring-1 ring-border"
                     />
-                    <div className="relative rounded-full ring-1 ring-primary/30 shadow-[0_0_50px_-10px_hsl(var(--primary)/.6)]">
-                      <Avatar
-                        name={activeCharacter?.name ?? '?'}
-                        src={activeCharacter?.avatar}
-                        size={84}
-                      />
+                    <div className="min-w-0">
+                      <h2 className="truncate text-[26px] font-semibold leading-[1.15] tracking-[-0.022em] md:text-[32px]">
+                        {activeCharacter ? activeCharacter.name : '还没有角色'}
+                      </h2>
+                      {activeCharacter?.tags.length ? (
+                        <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
+                          {activeCharacter.tags.slice(0, 3).join(' · ')}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-[12.5px] text-muted-foreground">
+                          {activeCharacter ? '这间屋子已经为你留好了灯。' : '先建一个角色，或导入一张角色卡。'}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  <h2 className="rise rise-2 text-glow text-2xl font-semibold tracking-tight sm:text-3xl">
-                    {activeCharacter ? activeCharacter.name : '还没有角色'}
-                  </h2>
-
-                  <p className="rise rise-2 mt-2 text-[13px] leading-6 text-muted-foreground">
-                    {activeCharacter
-                      ? activeCharacter.tags.length
-                        ? activeCharacter.tags.slice(0, 3).join(' · ')
-                        : '这间屋子已经为你留好了灯。'
-                      : '先在角色页建一个，或者导入一张角色卡。'}
-                  </p>
-
-                  {/* 开场白：当第一句台词来读，不像系统提示 */}
-                  {activeCharacter?.firstMessage ? (
-                    <figure className="glass-card rise rise-3 relative mt-7 w-full overflow-hidden rounded-2xl border border-border/70 px-4 py-4 text-left sm:px-5">
-                      <span className="absolute inset-y-3 left-0 w-[2px] rounded-full bg-gradient-to-b from-primary/70 via-primary/25 to-transparent" />
-                      <figcaption className="mb-2 text-[10px] uppercase tracking-[0.18em] text-primary/70">
-                        开场白
-                      </figcaption>
-                      <p className="whitespace-pre-wrap text-sm leading-7 text-foreground/90">
-                        {activeCharacter.firstMessage}
-                      </p>
-                    </figure>
-                  ) : (
-                    activeCharacter && (
-                      <p className="rise rise-3 mt-7 text-xs text-muted-foreground">
+                  {/* 开场白：用左侧竖线 + 衬线感行距当台词读，不用卡片框 */}
+                  {activeCharacter &&
+                    (activeCharacter.firstMessage ? (
+                      <figure className="rise rise-2 mt-9 border-l-2 border-primary/45 pl-4 md:pl-5">
+                        <figcaption className="mb-2 text-[10.5px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                          开场白
+                        </figcaption>
+                        <blockquote className="max-w-[42ch] whitespace-pre-wrap text-[15.5px] leading-[1.85] text-foreground/92">
+                          {activeCharacter.firstMessage}
+                        </blockquote>
+                      </figure>
+                    ) : (
+                      <p className="rise rise-2 mt-9 text-[13px] text-muted-foreground">
                         还没有写开场白，直接说第一句也开始了。
                       </p>
-                    )
-                  )}
+                    ))}
 
-                  {/* 一行状态：让这间屋子显得"运行中" */}
+                  {/* 元信息：一行，靠分隔点而非胶囊堆叠 */}
                   {activeCharacter && (
-                    <div className="rise rise-4 mt-5 flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card/50 px-2.5 py-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary/80 shadow-[0_0_6px_hsl(var(--primary))]" />
+                    <div className="rise rise-3 mt-9 flex flex-wrap items-center gap-x-3 gap-y-2 text-[11.5px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                         在线
                       </span>
-                      {settings.contextMessageLimit > 0 && (
-                        <span className="rounded-full border border-border/70 bg-card/50 px-2.5 py-1">
-                          上下文 {settings.contextMessageLimit} 条
-                        </span>
-                      )}
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <span className="tnum">
+                        上下文 <PopNumber value={settings.contextMessageLimit} /> 条
+                      </span>
                       {settings.memoryEnabled && memories.length > 0 && (
-                        <button
-                          onClick={() => navigate('/memory')}
-                          className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/50 px-2.5 py-1 transition-colors hover:border-primary/40 hover:text-foreground"
-                        >
-                          <IconBrain className="h-3 w-3" /> 记得 {memories.length} 件事
-                        </button>
+                        <>
+                          <span aria-hidden className="text-border">
+                            ·
+                          </span>
+                          <button
+                            onClick={() => navigate('/memory')}
+                            className="inline-flex items-center gap-1 underline decoration-border underline-offset-4 transition-colors hover:text-foreground hover:decoration-primary"
+                          >
+                            <IconBrain className="h-3 w-3" /> 记得{' '}
+                            <PopNumber value={memories.length} /> 件事
+                          </button>
+                        </>
                       )}
                     </div>
                   )}
 
                   {activeCharacter && (
-                    <div className="rise rise-5 mt-7 flex flex-wrap items-center justify-center gap-2.5">
+                    <div className="rise rise-4 mt-8 flex flex-wrap items-center gap-2.5">
                       <Button
                         size="lg"
                         onClick={() => void handleNewSession()}
-                        className="rounded-full px-6 shadow-[0_0_28px_-6px_hsl(var(--primary)/.65)]"
+                        className="cta-primary gap-2 px-6"
                       >
                         <IconMessages className="h-4 w-4" /> 开始对话
                       </Button>
                       <Button
                         size="lg"
-                        variant="outline"
-                        className="rounded-full px-5"
+                        variant="ghost"
+                        className="gap-2 px-3 text-muted-foreground hover:text-foreground"
                         onClick={() => navigate(`/characters/${activeCharacter.id}`)}
                       >
                         <IconEdit className="h-4 w-4" /> 编辑角色卡

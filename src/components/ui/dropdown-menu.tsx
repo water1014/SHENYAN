@@ -18,8 +18,8 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-[60] min-w-[9rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+        // t-dropdown：从触发元素的方向缩放出来（transform-origin 由 Radix 变量提供）
+        't-dropdown z-[60] min-w-[9rem] overflow-hidden rounded-[var(--r-control)] border bg-popover p-1 text-popover-foreground shadow-lg',
         className,
       )}
       {...props}

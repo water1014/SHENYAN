@@ -71,6 +71,35 @@ npm run typecheck
 
 ---
 
+## 动效语言
+
+动效遵循一套统一的规则（手法参考 [transitions.dev](https://transitions.dev)，代码是自己写的）：
+
+| 规则 | 实现 |
+| --- | --- |
+| 一条共享缓动 | `--ease-out: cubic-bezier(0.22, 1, 0.36, 1)`；需要"弹"的地方用 `--ease-pop` |
+| **关闭永远比打开快** | 打开 250ms / 关闭 150ms；Toast 350/250；都是"进慢出快" |
+| `blur()` 当景深 | 状态切换时交叉模糊，比纯淡入更有层次 |
+| `transform-origin` 指向触发点 | 下拉菜单从按钮方向长出来，不是从中心冒出来 |
+| 只用 `transform` / `opacity` / `filter` | 不碰 `top/left/width/height`，走 GPU 合成 |
+| 每个动效都要能说明用途 | 见下表 |
+
+覆盖的场景（`src/index.css` 里的 `.t-*` 类，靠 Radix 的 `data-state` 驱动，不写 JS 定时器）：
+
+| 类名 | 场景 | 用在哪 |
+| --- | --- | --- |
+| `.t-overlay` / `.t-dialog` | 弹窗淡入 + 缩放 | 所有对话框 |
+| `.t-dropdown` | 菜单从触发点缩放 | 会话菜单、消息操作菜单 |
+| `.t-tooltip` | 提示气泡 | 所有 Hint |
+| `.t-toast` | 从下方升起 + 交叉模糊 | 全局提示条 |
+| `.t-skeleton-bar` / `.t-reveal` | 骨架脉冲 → 内容淡入 | 启动加载 |
+| `.t-check` | 对勾淡入 + 旋转 + 上浮 | 复制成功、保存成功 |
+| `.t-digits` / `.t-digit` | 数字逐位弹入 | 记忆条数、上下文条数 |
+
+`prefers-reduced-motion: reduce` 时全部动效被关掉，只保留最终状态。
+
+---
+
 ## 手机 / 窄屏
 
 界面本身就是移动优先的响应式布局，不需要另做一套：

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -102,10 +102,41 @@ export function AppShell() {
 
   if (!loaded || !ready) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
-          <span className="text-xs">正在读取本地数据…</span>
+      // 骨架屏：与最终布局同形，条块带一次性脉冲；数据到了由内容淡入接管
+      <div className="flex h-full flex-col" aria-busy="true" aria-label="正在读取本地数据">
+        <div className="flex h-12 shrink-0 items-center gap-3 border-b border-border px-4">
+          <div className="t-skeleton-bar h-6 w-6 rounded-md bg-secondary" />
+          <div className="t-skeleton-bar h-3 w-24 rounded bg-secondary" />
+          <div className="ml-auto t-skeleton-bar h-6 w-28 rounded bg-secondary/60" />
+        </div>
+        <div className="flex min-h-0 flex-1">
+          <div className="hidden w-64 shrink-0 flex-col gap-2 border-r border-border p-3 lg:flex">
+            <div className="t-skeleton-bar h-8 w-full rounded-[var(--r-control)] bg-secondary" />
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-2.5 p-2">
+                <div className="t-skeleton-bar h-7 w-7 shrink-0 rounded-md bg-secondary" />
+                <div className="flex-1 space-y-1.5">
+                  <div
+                    className="t-skeleton-bar h-2.5 rounded bg-secondary"
+                    style={{ width: `${68 - i * 9}%` }}
+                  />
+                  <div
+                    className="t-skeleton-bar h-2 rounded bg-secondary/60"
+                    style={{ width: `${44 - i * 6}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="t-reveal flex min-w-0 flex-1 flex-col items-start gap-4 px-5 pt-16">
+            <div className="t-skeleton-bar h-2.5 w-16 rounded bg-secondary/60" />
+            <div className="t-skeleton-bar h-7 w-36 rounded bg-secondary" />
+            <div className="mt-5 space-y-2.5">
+              <div className="t-skeleton-bar h-2.5 w-72 max-w-full rounded bg-secondary/70" />
+              <div className="t-skeleton-bar h-2.5 w-60 max-w-full rounded bg-secondary/60" />
+              <div className="t-skeleton-bar h-2.5 w-44 max-w-full rounded bg-secondary/50" />
+            </div>
+          </div>
         </div>
       </div>
     )
