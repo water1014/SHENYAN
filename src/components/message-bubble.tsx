@@ -140,7 +140,8 @@ export function MessageBubble({
 
         <div
           className={cn(
-            'relative w-full rounded-[var(--r-panel)] px-3.5 py-2.5 md:px-4 md:py-3',
+            'relative w-full px-3.5 py-2.5 md:px-4 md:py-3',
+            'rounded-[var(--bubble-radius)]',
             isUser ? 'bubble-user rounded-tr-[6px]' : 'bubble-assistant rounded-tl-[6px]',
           )}
         >

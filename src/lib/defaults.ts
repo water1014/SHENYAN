@@ -143,7 +143,7 @@ export function createDefaultSettings(): AppSettings {
     requestTimeoutMs: 120000,
     systemIdentity: DEFAULT_SYSTEM_IDENTITY,
     promptPresetId: DEFAULT_PROMPT_PRESET.id,
-    theme: 'dark',
+    theme: 'light',
     showTokenEstimate: false,
     autoBackupMinutes: 0,
     autoBackupKeep: 5,
