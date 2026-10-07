@@ -35,20 +35,12 @@ jobs:
       - name: 类型检查
         run: npm run typecheck
 
-      # 关键：告诉 Vite 站点挂在哪个子路径下。
-      # - 普通仓库（project site）：/仓库名/
-      # - 形如 <用户名>.github.io 的用户主页仓库（user site）：/
-      # 注意别写成 format('{0}.github.io', ...)：字面量里的 {0} 会被一起替换掉，判断就错了。
+      # 关于站点子路径：
+      # 本项目用 HashRouter，页面 URL 永远停在 /仓库名/ 这一层（#/settings 之类不参与路径解析），
+      # 所以 Vite 的 base 用默认的 './' 相对路径就必然解析正确 —— 用户主页仓库和普通仓库都适用。
+      # 产物因此也能直接双击 dist/index.html 打开，不依赖部署位置。
       - name: 构建
-        env:
-          REPO_NAME: ${{ github.event.repository.name }}
-          OWNER: ${{ github.repository_owner }}
-          BASE_PATH: ${{ github.event.repository.name == github.repository_owner && '/' || format('/{0}/', github.event.repository.name) }}
-        run: |
-          echo "仓库=$REPO_NAME 拥有者=$OWNER 站点路径=$BASE_PATH"
-          [ "$REPO_NAME" = "$OWNER.github.io" ] && export BASE_PATH="/" || true
-          echo "最终 BASE_PATH=$BASE_PATH"
-          npm run build
+        run: npm run build
 
       # 关掉 Jekyll：它默认会忽略下划线开头的文件/目录，是 Pages 上常见的隐形坑
       - name: 关闭 Jekyll 处理

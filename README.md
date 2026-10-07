@@ -144,51 +144,56 @@ npm run typecheck
 仓库里已经放好 [.github/workflows/deploy.yml](.github/workflows/deploy.yml)，推上去即可自动构建发布：
 
 ```bash
-cd github-upload
 git init
 git add -A
 git commit -m "AI 伴侣聊天前端 P0"
 git branch -M main
-git remote add origin https://github.com/<你的用户名>/<仓库名>.git
+git remote add origin git@github.com:<你的用户名>/<仓库名>.git
 git push -u origin main
 ```
 
-然后在 GitHub 仓库里：**Settings → Pages → Build and deployment → Source 选 `GitHub Actions`**。
-之后每次 push 到 `main` 都会自动「类型检查 → 构建 → 发布」，地址是
-`https://<你的用户名>.github.io/<仓库名>/`。
+### 站点子路径：用默认的相对路径即可
 
-### 部署路径是怎么处理的
+`vite.config.ts` 的 `base` 默认是 `'./'`，**不需要**为 Pages 传 `BASE_PATH`。原因是本项目用 **HashRouter**：
+页面 URL 永远停在 `/仓库名/` 这一层（`#/settings` 之类不参与路径解析），所以相对路径必然解析正确，
+用户主页仓库（`<用户名>.github.io`）和普通仓库都适用。
 
-Vite 的 `base` 决定 `index.html` 里资源怎么写。两种模式都支持：
-
-| 场景 | base | `index.html` 里长这样 |
-| --- | --- | --- |
-| 本地 `npm run build` / 双击打开 | `./`（默认） | `<script src="./assets/index-xxx.js">` |
-| GitHub Pages（CI 里设置 `BASE_PATH`） | `/仓库名/` | `<script src="/仓库名/assets/index-xxx.js">` |
-
-CI 会自动传 `BASE_PATH`，用户主页仓库（`<用户名>.github.io`）会自动用 `/`。你也可以手动指定：
+好处是构建产物**自足**：`dist/index.html` 可以直接双击打开，也能挂到任意子目录，不依赖部署位置。
 
 ```bash
-BASE_PATH=/my-repo/ npm run build
+npm run build   # 产物在 dist/，可直接打开
 ```
 
-> 为什么要给 Pages 用绝对路径：hash 路由会让页面 URL 变成 `/仓库名/#/settings` 这种形式。
-> 用相对路径时资源是按当前文档地址解析的，虽然正常情况下也能work，但一旦出现
-> 「HTML 拿到了、JS/CS 却 404」的情况，页面上就只剩一片空白 —— 绝对路径从站点根解析，更稳。
+### ⚠️ 部署后是空白页？第一件事查 Pages 的 Source
 
-### 部署后是空白页？按这个顺序查
+**这一条必须先确认**，它是本项目唯一踩过的坑：
 
-1. **Pages 的 Source 必须是 `GitHub Actions`。** 如果选的是 `Deploy from a branch / main / (root)`，
-   GitHub 会把**源码**当静态站发布 —— 而根目录的 `index.html` 里写的是
-   `<script src="/src/main.tsx">`，浏览器拿不到编译后的 JS，结果就是**全白**。
-   这是最常见的空白页原因。
-2. **看 Actions 有没有跑成功。** 仓库 **Actions** 标签页里应该有一条绿色的
+> 仓库 **Settings → Pages → Build and deployment → Source** 必须选 **`GitHub Actions`**。
+>
+> 如果选的是 `Deploy from a branch` / `main` / `/(root)`，GitHub 会把**仓库根目录当静态站发布**。
+> 而根目录的 `index.html` 是 Vite 的**源码模板**，里面写的是 `<script src="/src/main.tsx">` ——
+> 浏览器会以 `text/plain` 拿到 `.tsx` 源文件，解析失败，**页面全白**。
+>
+> 更麻烦的是：这种情况下 `Deploy to GitHub Pages` 这个 Action **照样显示绿色成功**，
+> 因为它确实把产物传上去了，只是**发布的内容被分支部署覆盖了**。所以「CI 绿」不等于「站点正常」。
+
+一行命令自查你现在是哪种模式 —— 返回 **200** 就说明还在分支模式（因为 Actions 产物里不含 `src/`）：
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" \
+  https://<你的用户名>.github.io/<仓库名>/src/main.tsx
+```
+
+### 其余排查顺序
+
+1. **看 Actions 有没有跑成功。** 仓库 **Actions** 标签页里应该有一条绿色的
    `Deploy to GitHub Pages`。失败的话点进去看日志，构建日志里有一步会打印
    `dist` 结构和 `index.html` 的资源引用，能直接看出问题。
-3. **确认文件在仓库根目录，不是套在子文件夹里。** 仓库顶层应该直接看到
+2. **确认源码在仓库根目录，不是套在子文件夹里。** 顶层应该直接看到
    `index.html`、`package.json`、`src/`、`.github/`；不能是 `github-upload/index.html` 这种。
-4. **强制刷新**：`Ctrl+Shift+R`（手机上换个浏览器或无痕窗口），排除缓存。
-5. 还不行就打开浏览器控制台（F12）看 **Console 和 Network** 里的红色报错，
+   注意：根目录**不要**提交 `dist/` 的产物（`.gitignore` 已排除），源码仓库保持干净。
+3. **强制刷新**：`Ctrl+Shift+R`（手机上换个浏览器或无痕窗口），排除缓存与 Service Worker。
+4. 还不行就打开浏览器控制台（F12）看 **Console 和 Network** 里的红色报错，
    那是定位问题最快的方式 —— 把报错发出来即可。
 
 几个已为此准备好的点：
@@ -197,6 +202,7 @@ BASE_PATH=/my-repo/ npm run build
 - **纯前端 + IndexedDB**，不需要任何后端或数据库
 - **CI 会生成 `.nojekyll`**，避免 Jekyll 忽略下划线开头的文件
 - API Key 存在使用者自己浏览器的本地库里，不会进仓库
+
 
 > ⚠️ 部署后「聊不起来」和空白页是两回事：页面能打开但发消息报错，那是 **CORS**，
 > 跟 Pages 无关，用本地代理解决（见上文）。不要把 API Key 写进代码或 `.env` 再提交到公开仓库。
