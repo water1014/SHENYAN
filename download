@@ -1,0 +1,26 @@
+# 依赖
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vite
+.pnpm-store
+.tmp
+*.tsbuildinfo
+
+# 环境变量（本项目的 Key 存在浏览器里，正常不需要 .env）
+.env
+.env.local
+
+# 本地安装缓存
+.npm-cache
+*.log
+
+# 截图等临时验证产物
+.shots
+github-upload
+
+# 运行时报错：若仓库根目录意外落在开发工具的运行目录里，
+# 不要把这些与本项目无关的会话数据提交上去
+data

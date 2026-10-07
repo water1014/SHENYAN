@@ -1,0 +1,76 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署，新的推送不打断正在进行的发布
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 类型检查
+        run: npm run typecheck
+
+      # 关键：告诉 Vite 站点挂在哪个子路径下。
+      # - 普通仓库（project site）：/仓库名/
+      # - 形如 <用户名>.github.io 的用户主页仓库（user site）：/
+      # 注意别写成 format('{0}.github.io', ...)：字面量里的 {0} 会被一起替换掉，判断就错了。
+      - name: 构建
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          OWNER: ${{ github.repository_owner }}
+          BASE_PATH: ${{ github.event.repository.name == github.repository_owner && '/' || format('/{0}/', github.event.repository.name) }}
+        run: |
+          echo "仓库=$REPO_NAME 拥有者=$OWNER 站点路径=$BASE_PATH"
+          [ "$REPO_NAME" = "$OWNER.github.io" ] && export BASE_PATH="/" || true
+          echo "最终 BASE_PATH=$BASE_PATH"
+          npm run build
+
+      # 关掉 Jekyll：它默认会忽略下划线开头的文件/目录，是 Pages 上常见的隐形坑
+      - name: 关闭 Jekyll 处理
+        run: touch dist/.nojekyll
+
+      - name: 检查产物（空白页排查用）
+        run: |
+          echo "--- dist 结构 ---"
+          find dist -type f | head -40
+          echo "--- index.html 里的资源引用 ---"
+          grep -oE '(src|href)="[^"]+"' dist/index.html || true
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
