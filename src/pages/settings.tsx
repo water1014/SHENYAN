@@ -19,7 +19,6 @@ import {
   IconLayers,
   IconPlus,
   IconSave,
-  IconSettings,
   IconSparkles,
   IconTrash,
 } from '@/components/icons'
@@ -27,6 +26,7 @@ import { cn, clamp, copyText, safeParseJson } from '@/lib/utils'
 import { endpointOf } from '@/services/llm'
 import { DEFAULT_SYSTEM_IDENTITY } from '@/lib/defaults'
 import { BACKGROUNDS, themeForBackground } from '@/lib/backgrounds'
+import { GlassCard, RowGroup, Segmented, SettingsRow } from '@/components/settings-kit'
 import { useSettingsStore } from '@/store/settings'
 import type { ModelPreset, PromptBlockToggle, PromptPreset } from '@/lib/types'
 
@@ -53,7 +53,7 @@ function Field({
   return (
     <div className={cn('space-y-1.5', className)}>
       <div className="flex items-center gap-1.5">
-        <Label className="text-xs">{label}</Label>
+        <Label className="text-[12.5px]">{label}</Label>
         {hint && (
           <Hint label={hint}>
             <span className="text-muted-foreground">
@@ -146,12 +146,19 @@ export function Settings() {
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin">
-      <div className="mx-auto max-w-5xl space-y-5 px-3.5 py-5 pb-24 sm:px-5 sm:py-6 xl:pb-6">
-        <header className="space-y-1">
-          <h1 className="flex items-center gap-2 text-xl font-semibold">
-            <IconSettings className="h-5 w-5 text-primary" /> 设置
-          </h1>
-          <p className="text-xs text-muted-foreground">
+      <div
+        className="mx-auto space-y-6 pb-28 xl:pb-10"
+        style={{
+          maxWidth: '54rem',
+          paddingLeft: 'var(--side-pad)',
+          paddingRight: 'var(--side-pad)',
+          paddingTop: 'var(--gap-5)',
+          paddingBottom: 'var(--gap-5)',
+        }}
+      >
+        <header className="space-y-1.5">
+          <h1 className="text-[clamp(22px,3vw,30px)] font-medium tracking-[-0.02em]">设置</h1>
+          <p className="text-[12.5px] leading-relaxed text-muted-foreground">
             兼容 OpenAI 格式的 <code className="rounded bg-muted px-1">/v1/chat/completions</code>
             。所有设置只存在这台机器的浏览器里。
           </p>
@@ -166,28 +173,43 @@ export function Settings() {
           </TabsList>
 
           {/* ---------------- 外观 ---------------- */}
+          {/* ---------------- 外观 ---------------- */}
           <TabsContent value="look">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">背景图</CardTitle>
-                  <CardDescription className="text-[11px]">
-                    来自本机壁纸库，统一裁成手机比例并压成 WebP（合计约 0.6 MB）。
-                    原图是浅底深字，所以会叠一层可调暗度蒙版来保证文字可读。
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+            <div className="space-y-5">
+              <RowGroup label="主题">
+                <SettingsRow
+                  stacked
+                  name="界面配色"
+                  desc="珍珠是浅色日间，海港是深色夜间"
+                  value={
+                    <Segmented
+                      ariaLabel="主题切换"
+                      value={settings.theme}
+                      onChange={(v) => void update({ theme: v })}
+                      options={[
+                        { value: 'light' as const, label: '珍珠' },
+                        { value: 'dark' as const, label: '海港' },
+                      ]}
+                    />
+                  }
+                />
+              </RowGroup>
+
+              <RowGroup label="背景图" >
+                <GlassCard>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-6">
                     <button
                       onClick={() => void update({ backgroundId: '' })}
                       className={cn(
-                        'flex aspect-[9/16] items-center justify-center rounded-[var(--r-control)] border px-1 text-center text-[10px] leading-tight text-muted-foreground transition-colors',
+                        'flex aspect-[9/16] items-center justify-center rounded-[var(--r-control)] border px-1 text-center text-[10px] leading-tight transition-colors',
                         !settings.backgroundId
-                          ? 'border-primary/60 bg-primary/10 text-foreground'
-                          : 'border-border hover:border-primary/40',
+                          ? 'border-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.1)] text-foreground'
+                          : 'border-[hsl(var(--line))] text-muted-foreground hover:border-[hsl(var(--accent)/0.5)]',
                       )}
                     >
-                      不用背景
+                      不用
+                      <br />
+                      背景
                     </button>
                     {BACKGROUNDS.map((b) => {
                       const rec = themeForBackground(b)
@@ -195,101 +217,83 @@ export function Settings() {
                         <button
                           key={b.id}
                           onClick={() =>
-                            // 主题跟着壁纸走：浅色壁纸配浅色主题，深色壁纸配深色主题
                             void update({
                               backgroundId: b.id,
                               backgroundDim: rec.dim,
                               theme: rec.theme,
                             })
                           }
-                          title={`${b.id} · 亮度 ${b.luminance.toFixed(2)} · 建议${rec.theme === 'light' ? '浅色' : '深色'}主题`}
+                          title={`${b.id} · 亮度 ${b.luminance.toFixed(2)} · 建议${rec.theme === 'light' ? '珍珠' : '海港'}`}
                           className={cn(
                             'aspect-[9/16] overflow-hidden rounded-[var(--r-control)] border bg-cover bg-center transition-all',
                             settings.backgroundId === b.id
-                              ? 'border-primary ring-2 ring-primary/40'
-                              : 'border-border hover:border-primary/40',
+                              ? 'border-[hsl(var(--accent))] ring-2 ring-[hsl(var(--accent)/0.3)]'
+                              : 'border-[hsl(var(--line))] hover:border-[hsl(var(--accent)/0.5)]',
                           )}
                           style={{ backgroundImage: `url("${b.url}")` }}
                         />
                       )
                     })}
                   </div>
-
-                  <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                  <p className="mt-3 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
                     <IconInfo className="mt-0.5 h-3 w-3 shrink-0" />
-                    这批壁纸是浅底手绘，所以选中时会自动切到浅色主题并把暗度调低；
-                    偏暗的 bg-04 / bg-10 会反过来配深色主题。
+                    这批壁纸是浅底手绘，选中时会自动切到珍珠配色并把暗度调低；
+                    偏暗的 bg-04 / bg-10 会反过来配海港。
                   </p>
-
-                  <Field
-                    label={`暗度 ${settings.backgroundDim}%`}
-                    hint="越大背景越暗、文字越清楚；太亮压不住背景上的手写文案"
-                  >
-                    <Slider
-                      value={[settings.backgroundDim]}
-                      min={0}
-                      max={95}
-                      step={1}
-                      disabled={!settings.backgroundId}
-                      onValueChange={([v]) => void update({ backgroundDim: v })}
-                    />
-                  </Field>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">界面字体</CardTitle>
-                  <CardDescription className="text-[11px]">
-                    只引用本机已安装的字体名，不内嵌字体文件。换设备或没装该字体时会自动回落到系统栈。
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-2">
-                    {(
-                      [
-                        { key: 'system', label: '系统默认', desc: '苹方 / 微软雅黑，最稳', cls: '' },
-                        { key: 'maru', label: '丸体 975MaruSC', desc: '圆润，适合陪伴感', cls: 'font-maru' },
-                        { key: 'ming', label: '明朝体 汇文明朝体', desc: '衬线，适合诗句与留言', cls: 'font-ming' },
-                        { key: 'hand', label: '手写体', desc: '包参谋手写体，最有私人信件感', cls: 'font-hand' },
-                      ] as const
-                    ).map((f) => (
-                      <button
-                        key={f.key}
-                        onClick={() => void update({ displayFont: f.key })}
-                        className={cn(
-                          'flex w-full items-center justify-between gap-3 rounded-[var(--r-control)] border px-3.5 py-3 text-left transition-colors',
-                          settings.displayFont === f.key
-                            ? 'border-primary/60 bg-primary/10'
-                            : 'border-border hover:border-primary/40',
-                        )}
-                      >
-                        <span className="min-w-0">
-                          <span className="block text-[13px] font-medium">{f.label}</span>
-                          <span className="block text-[11px] text-muted-foreground">{f.desc}</span>
-                        </span>
-                        <span className={cn('shrink-0 text-[14px] text-foreground/80', f.cls)}>
-                          晚安，辛苦了
-                        </span>
-                      </button>
-                    ))}
+                  <div className="mt-3">
+                    <Field
+                      label={`暗度 ${settings.backgroundDim}%`}
+                      hint="越大背景越暗、文字越清楚"
+                    >
+                      <Slider
+                        value={[settings.backgroundDim]}
+                        min={0}
+                        max={95}
+                        step={1}
+                        disabled={!settings.backgroundId}
+                        onValueChange={([v]) => void update({ backgroundDim: v })}
+                      />
+                    </Field>
                   </div>
-                  <p className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
-                    <IconInfo className="mt-0.5 h-3 w-3 shrink-0" />
-                    这些字体多来自商业字库，个人使用一般没问题；若要公开分发或商用，请自行确认授权。
-                  </p>
-                </CardContent>
-              </Card>
+                </GlassCard>
+              </RowGroup>
+
+              <RowGroup label="界面字体" >
+                {(
+                  [
+                    { key: 'system', label: '系统默认', desc: '宋体 / 明朝，最稳', cls: '' },
+                    { key: 'maru', label: '丸体 975MaruSC', desc: '圆润，适合陪伴感', cls: 'font-maru' },
+                    { key: 'ming', label: '明朝体 + Cormorant', desc: '衬线，珍珠潮汐的默认气质', cls: 'font-ming' },
+                    { key: 'hand', label: '手写体', desc: '包参谋手写体，像私人信件', cls: 'font-hand' },
+                  ] as const
+                ).map((f) => (
+                  <SettingsRow
+                    key={f.key}
+                    onClick={() => void update({ displayFont: f.key })}
+                    name={f.label}
+                    desc={f.desc}
+                    value={
+                      <span className={cn('text-[14px]', f.cls)}>
+                        {settings.displayFont === f.key ? '✓ 晚安' : '晚安'}
+                      </span>
+                    }
+                  />
+                ))}
+                <p className="flex items-start gap-1.5 px-1 pt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  <IconInfo className="mt-0.5 h-3 w-3 shrink-0" />
+                  只引用本机已安装的字体名，不内嵌字体文件；
+                  这些字体多来自商业字库，商用前请自行确认授权。
+                </p>
+              </RowGroup>
             </div>
           </TabsContent>
 
-          {/* ---------------- 接口与模型 ---------------- */}
           <TabsContent value="api">
             <div className="grid gap-4 md:grid-cols-[240px_1fr]">
               <Card className="h-fit">
                 <CardHeader className="p-4 pb-2">
-                  <CardTitle className="text-sm">模型预设</CardTitle>
-                  <CardDescription className="text-[11px]">
+                  <CardTitle className="text-[14.5px] font-medium">模型预设</CardTitle>
+                  <CardDescription className="text-[11.5px] leading-relaxed">
                     可以存多套配置随时切换
                   </CardDescription>
                 </CardHeader>
@@ -340,8 +344,8 @@ export function Settings() {
                 <Card>
                   <CardHeader className="flex-row items-center justify-between space-y-0">
                     <div>
-                      <CardTitle className="text-sm">预设详情</CardTitle>
-                      <CardDescription className="text-[11px]">
+                      <CardTitle className="text-[14.5px] font-medium">预设详情</CardTitle>
+                      <CardDescription className="text-[11.5px] leading-relaxed">
                         {selected.id === settings.activePresetId
                           ? '当前正在使用这套配置'
                           : '这套配置还没启用'}
@@ -370,7 +374,7 @@ export function Settings() {
                         <Input
                           value={selected.name}
                           onChange={(e) => patch({ name: e.target.value })}
-                          className="h-9 text-sm"
+                          className="h-9 text-[13.5px]"
                         />
                       </Field>
                       <Field
@@ -380,7 +384,7 @@ export function Settings() {
                         <Input
                           value={selected.model}
                           onChange={(e) => patch({ model: e.target.value })}
-                          className="h-9 text-sm"
+                          className="h-9 text-[13.5px]"
                           placeholder="gpt-4o-mini"
                         />
                       </Field>
@@ -542,7 +546,7 @@ export function Settings() {
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <IconSparkles className="h-4 w-4 text-primary" /> 上下文
                   </CardTitle>
-                  <CardDescription className="text-[11px]">
+                  <CardDescription className="text-[11.5px] leading-relaxed">
                     只把最近 N 条消息发给模型，更早的内容靠记忆摘要带过去
                   </CardDescription>
                 </CardHeader>
@@ -561,7 +565,7 @@ export function Settings() {
                   </Field>
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-xs">流式输出</Label>
+                      <Label className="text-[12.5px]">流式输出</Label>
                       <p className="text-[11px] text-muted-foreground">逐字显示（推荐开启）</p>
                     </div>
                     <Switch
@@ -571,7 +575,7 @@ export function Settings() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-xs">显示 token 估算</Label>
+                      <Label className="text-[12.5px]">显示 token 估算</Label>
                       <p className="text-[11px] text-muted-foreground">在消息与输入框旁显示粗略字数</p>
                     </div>
                     <Switch
@@ -599,14 +603,14 @@ export function Settings() {
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <IconBrain className="h-4 w-4 text-primary" /> 记忆
                   </CardTitle>
-                  <CardDescription className="text-[11px]">
+                  <CardDescription className="text-[11.5px] leading-relaxed">
                     置顶记忆一定注入；其余按重要度与时间取前 N 条
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-xs">启用长期记忆注入</Label>
+                      <Label className="text-[12.5px]">启用长期记忆注入</Label>
                       <p className="text-[11px] text-muted-foreground">关掉后记忆只存不用</p>
                     </div>
                     <Switch
@@ -628,7 +632,7 @@ export function Settings() {
                   </Field>
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-xs">自动摘要</Label>
+                      <Label className="text-[12.5px]">自动摘要</Label>
                       <p className="text-[11px] text-muted-foreground">按轮数自动提炼事实入库</p>
                     </div>
                     <Switch
@@ -677,7 +681,7 @@ export function Settings() {
                   <CardTitle className="flex items-center gap-2 text-sm">
                     <IconLayers className="h-4 w-4 text-primary" /> 组装顺序
                   </CardTitle>
-                  <CardDescription className="text-[11px]">
+                  <CardDescription className="text-[11.5px] leading-relaxed">
                     系统身份 → 角色卡 → 长期记忆 → 场景 / 示例 → 最近对话 → 你的输入
                   </CardDescription>
                 </CardHeader>
@@ -712,8 +716,8 @@ export function Settings() {
               {draftPreset && (
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">提示词预设</CardTitle>
-                    <CardDescription className="text-[11px]">
+                    <CardTitle className="text-[14.5px] font-medium">提示词预设</CardTitle>
+                    <CardDescription className="text-[11.5px] leading-relaxed">
                       用 {'{{identity}}'} {'{{character}}'} {'{{memory}}'} {'{{scenario}}'}{' '}
                       {'{{examples}}'} {'{{time}}'} 占位
                     </CardDescription>
