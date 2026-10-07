@@ -7,12 +7,14 @@ import { Avatar } from '@/components/avatar'
 import {
   IconBrain,
   IconDatabase,
+  IconHome,
   IconMessages,
   IconMoon,
   IconSettings,
   IconSun,
   IconUser,
 } from '@/components/icons'
+import { BottomNav } from '@/components/bottom-nav'
 import { cn } from '@/lib/utils'
 import { scheduleAutoBackup, useSettingsStore } from '@/store/settings'
 import { useCharacterStore } from '@/store/characters'
@@ -23,6 +25,7 @@ import { createAutoBackup, listAutoBackups, pruneAutoBackups } from '@/services/
 import { requestPersistentStorage } from '@/lib/db'
 
 const NAV = [
+  { to: '/home', label: '首页', icon: IconHome },
   { to: '/', label: '聊天', icon: IconMessages },
   { to: '/characters', label: '角色', icon: IconUser },
   { to: '/memory', label: '记忆', icon: IconBrain },
@@ -222,6 +225,9 @@ export function AppShell() {
         <div className="min-h-0 flex-1">
           <Outlet />
         </div>
+
+        {/* 底部导航：窄屏与平板用；聊天页自带输入区，所以那里不显示，避免和输入框打架 */}
+        {location.pathname !== '/' && <BottomNav />}
 
         <Toaster />
       </div>

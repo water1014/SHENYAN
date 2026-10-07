@@ -21,6 +21,21 @@ function base({ size = 18, className, ...props }: IconProps) {
   }
 }
 
+export const IconHome = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3 10.2 12 3l9 7.2" />
+    <path d="M5.5 9.4V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.4" />
+    <path d="M9.5 21v-6h5v6" />
+  </svg>
+)
+
+export const IconChat = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M21 11.5a8.4 8.4 0 0 1-8.4 8.4H8L3 22l1.3-4.4A8.4 8.4 0 1 1 21 11.5Z" />
+    <path d="M8.5 11.5h7" />
+  </svg>
+)
+
 export const IconPlus = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M12 5v14M5 12h14" />

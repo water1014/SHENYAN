@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+﻿import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/ui/button'
@@ -79,7 +79,7 @@ export function Characters() {
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin">
-      <div className="mx-auto max-w-5xl space-y-5 px-3.5 py-5 sm:px-5 sm:py-6">
+      <div className="mx-auto max-w-5xl space-y-5 px-3.5 py-5 pb-24 sm:px-5 sm:py-6 xl:pb-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <h1 className="flex items-center gap-2 text-xl font-semibold">

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -145,7 +145,7 @@ export function Settings() {
 
   return (
     <div className="h-full overflow-y-auto scrollbar-thin">
-      <div className="mx-auto max-w-5xl space-y-5 px-3.5 py-5 sm:px-5 sm:py-6">
+      <div className="mx-auto max-w-5xl space-y-5 px-3.5 py-5 pb-24 sm:px-5 sm:py-6 xl:pb-6">
         <header className="space-y-1">
           <h1 className="flex items-center gap-2 text-xl font-semibold">
             <IconSettings className="h-5 w-5 text-primary" /> 设置
