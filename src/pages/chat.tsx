@@ -209,6 +209,19 @@ export function ChatView() {
     await replaceMessage({ ...target, content, meta: { ...target.meta, edited: true } })
   }
 
+  /** 表情回应：同一个 emoji 再点一次即取消 */
+  const handleReact = async (id: string, emoji: string) => {
+    const target = messages.find((m) => m.id === id)
+    if (!target) return
+    const next = { ...(target.meta?.reactions ?? {}) }
+    if (next[emoji]) delete next[emoji]
+    else next[emoji] = Date.now()
+    await replaceMessage({
+      ...target,
+      meta: { ...target.meta, reactions: Object.keys(next).length ? next : undefined },
+    })
+  }
+
   const handleDeleteMessage = async (id: string) => {
     await db.messages.delete(id)
     removeMessageLocal(id)
@@ -562,6 +575,7 @@ export function ChatView() {
                 onEdit={(id, content) => void handleEditMessage(id, content)}
                 onDelete={(id) => void handleDeleteMessage(id)}
                 onContinue={() => void continueLast()}
+                onReact={(id, emoji) => void handleReact(id, emoji)}
               />
             ))}
 

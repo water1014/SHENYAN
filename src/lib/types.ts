@@ -73,6 +73,8 @@ export interface MessageMeta {
   tokens?: number
   /** 出错信息（若这条消息是错误占位） */
   error?: string
+  /** 表情回应：emoji -> 打上的时间戳 */
+  reactions?: Record<string, number>
   /** P1：情绪 / 心境快照 */
   mood?: string
   /** P1：语音条目 id */

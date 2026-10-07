@@ -18,10 +18,12 @@ import {
   IconEdit,
   IconMore,
   IconRefresh,
+  IconSmile,
   IconSparkles,
   IconTrash,
   IconX,
 } from '@/components/icons'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn, copyText, estimateTokens, formatDateTime } from '@/lib/utils'
 import type { Character, Memory, Message } from '@/lib/types'
 
@@ -37,8 +39,13 @@ export interface MessageBubbleProps {
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
   onContinue?: () => void
+  /** 表情回应：点同一个 emoji 表示取消 */
+  onReact?: (id: string, emoji: string) => void
   regenerating?: boolean
 }
+
+/** 常用回应。参考同类产品的「气泡反应」做法，但只保留一对一里最顺手的几个 */
+const QUICK_REACTIONS = ['❤️', '👍', '😂', '🥺', '🤗', '✨', '🔥', '🤔']
 
 export function MessageBubble({
   message,
@@ -50,6 +57,7 @@ export function MessageBubble({
   onEdit,
   onDelete,
   onContinue,
+  onReact,
 }: MessageBubbleProps) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(message.content)
@@ -86,6 +94,7 @@ export function MessageBubble({
   }
 
   const empty = !message.content.trim()
+  const reactions = Object.entries(message.meta?.reactions ?? {})
 
   return (
     <div
@@ -196,6 +205,28 @@ export function MessageBubble({
           )}
         </div>
 
+        {/* 表情回应条：贴在气泡下缘，有点"贴纸"的意思 */}
+        {reactions.length > 0 && (
+          <div className={cn('mt-1.5 flex flex-wrap gap-1', isUser && 'flex-row-reverse')}>
+            {reactions.map(([emoji]) => (
+              <button
+                key={emoji}
+                onClick={() => onReact?.(message.id, emoji)}
+                title="取消回应"
+                className={cn(
+                  'flex h-6 items-center gap-0.5 rounded-full border border-border bg-card px-2 text-[13px] leading-none',
+                  'transition-transform hover:border-primary/50 active:scale-90',
+                )}
+              >
+                <span className="t-check" data-state="in">
+                  {emoji}
+                </span>
+                <span className="tnum text-[10px] text-muted-foreground">1</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* 操作条：hover 显示；触摸设备没有 hover，所以常驻 */}
         {!editing && !streaming && (
           <div
@@ -213,6 +244,32 @@ export function MessageBubble({
                   <IconCopy className="h-3.5 w-3.5" />
                 )}
               </Button>
+            </Hint>
+
+            <Hint label="表情回应">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" className="h-8 w-8 sm:h-7 sm:w-7">
+                    <IconSmile className="h-3.5 w-3.5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align={isUser ? 'end' : 'start'} className="w-auto p-1.5">
+                  <div className="flex gap-0.5">
+                    {QUICK_REACTIONS.map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={() => onReact?.(message.id, emoji)}
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-[6px] text-[17px] leading-none',
+                          'transition-transform hover:bg-accent active:scale-90',
+                        )}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </Hint>
 
             {isUser ? (

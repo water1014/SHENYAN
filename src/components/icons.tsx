@@ -21,6 +21,14 @@ function base({ size = 18, className, ...props }: IconProps) {
   }
 }
 
+export const IconSmile = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+    <path d="M9 9.5h.01M15 9.5h.01" />
+  </svg>
+)
+
 export const IconHome = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M3 10.2 12 3l9 7.2" />
